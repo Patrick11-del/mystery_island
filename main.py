@@ -1,5 +1,4 @@
 
-from game import new_game
 from game import new_game, apply_action
 
 
@@ -18,16 +17,9 @@ print(f"{player_name}, you are welcome to {lost_light_house}!")
 
 player_state = new_game(player_name)
 
-next_location = {
-    "Beach": "Jungle",
-    "Jungle": "Cave",
-    "Cave": "Old bridge",
-    "Old bridge": "Lighthouse"
-}
-
 game_running = True
 
-while game_running:
+while game_running and not player_state["game_over"]:
 
     print("\n1. Explore")
     print("2. Check energy")
@@ -42,40 +34,9 @@ while game_running:
 
     # OPTION 1: EXPLORE
     if player_choice == "1":
-
-        if player_state["energy"] > 0:
-
-            current_location = player_state["location"]
-
-            if current_location in next_location:
-
-                destination = next_location[current_location]
-                if destination == "Old bridge" and "lantern" not in player_state["inventory"]:
-                    print("You must collect the lantern in the Cave first!")
-   
-
-                elif destination == "Lighthouse" and "rope" not in player_state["inventory"]:
-                    print("You cannot proceed without a rope!")
-
-                else:
-                    player_state["location"] = destination
-                    player_state["energy"] -= 1
-
-                    print(f"You are now at {destination}")
-                    print(f"Remaining energy: {player_state['energy']}")
-
-                    if player_state["energy"] == 0:
-                        player_state["game_over"] = True
-                        game_running = False
-                        print("You have run out of energy. Game over!")
-
-            else:
-                print("There is no more location to explore.")
-
-        else:
-            player_state["game_over"] = True
-            game_running = False
-            print("You have run out of energy. Game over!")
+        message = apply_action(player_state, "explore")
+        print(message)
+        
 
     # OPTION 2: CHECK ENERGY
     elif player_choice == "2":
@@ -87,29 +48,13 @@ while game_running:
 
     # OPTION 4: COLLECT ROPE
     elif player_choice == "4":
-
-        if player_state["location"] != "Beach":
-            print("Rope must be collected at the Beach.")
-
-        elif "rope" not in player_state["inventory"]:
-            player_state["inventory"].append("rope")
-            print("You collected a rope!")
-
-        else:
-            print("You already have a rope!")
+        message = apply_action(player_state, "collect_rope")
+        print(message)
 
     # OPTION 5: COLLECT LANTERN
     elif player_choice == "5":
-
-        if player_state["location"] != "Cave":
-            print("The lantern can only be collected at the Cave.")
-
-        elif "lantern" not in player_state["inventory"]:
-            player_state["inventory"].append("lantern")
-            print("You collected a lantern!")
-
-        else:
-            print("You already have a lantern!")
+        message = apply_action(player_state, "collect_lantern")
+        print(message)
 
     # OPTION 6: QUIT
     elif player_choice == "6":
@@ -117,54 +62,12 @@ while game_running:
 
     # OPTION 7: SEARCH THE JUNGLE
     elif player_choice == "7":
-
-        if player_state["location"] != "Jungle":
-            print("You are not in the Jungle.")
-
-        elif player_state["searched_jungle"]:
-            print("You have already searched the Jungle.")
-
-        elif player_state["energy"] < 2:
-            print("You do not have enough energy to search.")
-
-        else:
-            player_state["energy"] -= 2
-            player_state["searched_jungle"] = True
-
-            print("You found a clue!")
-            print("The lantern is hidden in the Cave.")
-            print("A rope is required to cross the Old Bridge.")
-
-            if player_state["energy"] == 0:
-                player_state["game_over"] = True
-                game_running = False
-                print("You have run out of energy. Game over!")
-
+        message = apply_action(player_state, "search_jungle")
+        print(message)
     # OPTION 8: RESTORE LIGHTHOUSE BEACON
     elif player_choice == "8":
-
-        if player_state["location"] == "Lighthouse" and "lantern" in player_state["inventory"] and player_state["energy"] > 0:
-
-            player_state["won"] = True
-            player_state["game_over"] = True
-            game_running = False
-
-            print("Congratulations! You have successfully completed the game!")
-            print("The lighthouse beacon is restored!")
-            print("The rescue boat is coming!")
-
-        else:
-            print("You cannot restore the lighthouse beacon yet.")
-
-            if player_state["location"] != "Lighthouse":
-                print("You must reach the Lighthouse first.")
-
-            elif "lantern" not in player_state["inventory"]:
-                print("You need a lantern to restore the beacon.")
-
-            elif player_state["energy"] <= 0:
-                print("You have no energy remaining.")
-
+        message = apply_action(player_state, "restore_beacon")
+        print(message)
     # INVALID MENU CHOICE
     else:
         print("Your choice is invalid!")
